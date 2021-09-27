@@ -63,7 +63,7 @@ def create_report(employers_data: list) -> dict:
             emp_count = result[dep]['Число работников']
             avg_salary = result[dep]['Средняя зарплата']
             min_salary = result[dep]['Вилка зарплат']['min']
-            max_salary = result[dep]['Вилка зарплат']['min']
+            max_salary = result[dep]['Вилка зарплат']['max']
 
             result[dep]['Вилка зарплат']['min'] = min(min_salary, salary)
             result[dep]['Вилка зарплат']['max'] = max(max_salary, salary)
@@ -77,7 +77,7 @@ def format_report(result: dict) -> list:
     Formatting report for pretty print
     """
     string_width = 75
-    max_word_length = 16
+    max_word_length = 17
     formatted_result = []
     headers = ['Департамент', 'Число работников', 'Вилка зарплат', 'Средняя зарплата']
 
