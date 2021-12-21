@@ -3,20 +3,20 @@ import random
 from typing import Callable
 
 
-def log(func: Callable) -> Callable:
-    """Декоратор, который выводит комментарий и время выполнения для функции"""
-    def wrapped(*args):
-        pattern = {'bake': '🍪 Приготовили за ',
-                   'delivery_pizza': '🛴 Доставили за ',
-                   'pickup': '🏠 Забрали за '}
-        min_time = 1
-        max_time = 10
-        time = random.randint(min_time, max_time)
-        if func.__name__ in pattern:
-            print(f'{pattern[func.__name__]}{time}c!')
-
-        return func(*args)
-    return wrapped
+def log(pattern: str) -> Callable:
+    """Декоратор, который выводит комментарий и время выполнения для функции
+    pattern: Шаблон вывода времени, должен содержать "{}"
+    """
+    def outer_wrapper(func: Callable) -> Callable:
+        def wrapped(*args):
+            min_time = 1
+            max_time = 10
+            time = random.randint(min_time, max_time)
+            if pattern:
+                print(pattern.format(time))
+            return func(*args)
+        return wrapped
+    return outer_wrapper
 
 
 class Pizza:
@@ -35,17 +35,10 @@ class Pizza:
     dict: Печатает описание пиццы
     __eq__: Проверяет на равенство два объекта типа Пицца
     """
-    pizzas = {'Margherita': {'logo': '🧀', 'recipe': ['tomato sauce', 'mozzarella', 'tomatoes']},
-              'Pepperoni': {'logo': '🍕', 'recipe': ['tomato sauce', 'mozzarella', 'pepperoni']},
-              'Hawaiian': {'logo': '🍍', 'recipe': ['tomato sauce', 'mozzarella', 'chicken', 'pineapples']}}
+    pizzas = {'margherita': {'logo': '🧀', 'recipe': ['tomato sauce', 'mozzarella', 'tomatoes']},
+              'pepperoni': {'logo': '🍕', 'recipe': ['tomato sauce', 'mozzarella', 'pepperoni']},
+              'hawaiian': {'logo': '🍍', 'recipe': ['tomato sauce', 'mozzarella', 'chicken', 'pineapples']}}
     sizes = ['L', 'XL']
-
-    def __init__(self, name: str, size='L'):
-        self.name = name
-        if size in Pizza.sizes:
-            self.size = size
-        else:
-            print('Задан неверный размер!')
 
     def dict(self):
         """Печатаем описание пиццы"""
@@ -58,18 +51,60 @@ class Pizza:
         return False
 
 
-@log
-def bake(pizza):
+class Pepperoni(Pizza):
+    def __init__(self, name: str, size='L'):
+        super().__init__()
+        self.name = name
+        if self.name in Pizza.pizzas:
+            self.recipe = Pizza.pizzas[self.name]
+        else:
+            print('Пицца находится в стации разработки, обратитесь попозже.')
+        if size in Pizza.sizes:
+            self.size = size
+        else:
+            print('Задан неверный размер!')
+
+
+class Margherita(Pizza):
+    def __init__(self, name: str, size='L'):
+        super().__init__()
+        self.name = name
+        if self.name in Pizza.pizzas:
+            self.recipe = Pizza.pizzas[self.name]
+        else:
+            print('Пицца находится в стации разработки, обратитесь попозже.')
+        if size in Pizza.sizes:
+            self.size = size
+        else:
+            print('Задан неверный размер!')
+
+
+class Hawaiian(Pizza):
+    def __init__(self, name: str, size='L'):
+        super().__init__()
+        self.name = name
+        if self.name in Pizza.pizzas:
+            self.recipe = Pizza.pizzas[self.name]
+        else:
+            print('Пицца находится в стации разработки, обратитесь попозже.')
+        if size in Pizza.sizes:
+            self.size = size
+        else:
+            print('Задан неверный размер!')
+
+
+@log('🍪 Приготовили за {}c!')
+def bake(pizza: Pizza):
     """Готовит пиццу"""
 
 
-@log
-def delivery_pizza(pizza):
+@log('🛴 Доставили за {}c!')
+def delivery_pizza(pizza: Pizza):
     """Доставляет пиццу"""
 
 
-@log
-def pickup(pizza):
+@log('🏠 Забрали за {}c!')
+def pickup(pizza: Pizza):
     """Самовывоз"""
 
 
@@ -83,17 +118,23 @@ def cli():
 @click.argument('pizza', nargs=1)
 def order(pizza: str, delivery: bool):
     """Готовит и доставляет пиццу"""
-    hot_pizza = Pizza(pizza)
-    bake(hot_pizza)
-    if delivery:
-        delivery_pizza(hot_pizza)
+    pizza_menu = {'margherita': Margherita,
+                  'pepperoni': Pepperoni,
+                  'hawaiian': Hawaiian}
+    if pizza in pizza_menu:
+        hot_pizza = pizza_menu[pizza](pizza)
+        bake(hot_pizza)
+        if delivery:
+            delivery_pizza(hot_pizza)
+        else:
+            pickup(hot_pizza)
     else:
-        pickup(hot_pizza)
+        print('Пицца находится в стации разработки, обратитесь попозже.')
 
 
 @cli.command()
 def menu():
-    """Выыодит меню"""
+    """Выводит меню"""
     print('Menu:')
     for i, item in enumerate(Pizza.pizzas):
         pizza = Pizza.pizzas[item]
